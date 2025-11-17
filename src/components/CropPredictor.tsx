@@ -77,7 +77,6 @@ export const CropPredictor = ({
     temperature: "",
     soilType: "",
     fertilizerType: "urea",
-    fertilizerAmount: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -254,7 +253,10 @@ export const CropPredictor = ({
       const area = parseFloat(formData.area);
       const rainfall = parseFloat(formData.rainfall);
       const temperature = parseFloat(formData.temperature);
-      const fertilizer = parseFloat(formData.fertilizerAmount);
+      
+      // Calculate fertilizer based on crop and area
+      const baseN = formData.crop === "Rice" ? 120 : formData.crop === "Wheat" ? 150 : formData.crop === "Maize" ? 140 : 100;
+      const fertilizer = baseN * area;
 
       // Simplified RandomForest-like prediction
       let baseYield = 1.5;
@@ -323,31 +325,38 @@ export const CropPredictor = ({
   };
 
   return (
-    <Card className="w-full shadow-lg border-border/50 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/5 border-b border-border/50">
-        <CardTitle className="flex items-center gap-2 text-foreground">
-          <Sprout className="h-6 w-6 text-primary animate-pulse" />
-          AI Crop Yield Predictor
-        </CardTitle>
-        <p className="text-sm text-muted-foreground mt-2">
-          Enter your farm details to get AI-powered yield predictions and optimization suggestions
-        </p>
+    <Card className="w-full shadow-xl border-0 overflow-hidden bg-gradient-card">
+      <CardHeader className="relative pb-8 pt-8 px-8 bg-gradient-hero border-b border-white/20 backdrop-blur-sm">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="relative">
+          <CardTitle className="flex items-center gap-3 text-white text-2xl font-bold">
+            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm ring-2 ring-white/30">
+              <Sprout className="h-7 w-7 text-white" />
+            </div>
+            AI Crop Yield Predictor
+          </CardTitle>
+          <p className="text-white/90 mt-3 text-base leading-relaxed max-w-2xl">
+            Advanced machine learning predictions powered by RandomForest algorithm for precision agriculture
+          </p>
+        </div>
       </CardHeader>
-      <CardContent className="mt-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Location Section */}
-          <div className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <MapPin className="h-4 w-4" />
-              Location Details
+          <div className="relative p-6 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/3 to-transparent border border-primary/20 shadow-soft hover:shadow-md transition-all duration-300 space-y-5">
+            <div className="flex items-center gap-3 pb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <MapPin className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Location Details</h3>
             </div>
             <div>
-              <Label htmlFor="location" className="flex items-center gap-2">
+              <Label htmlFor="location" className="flex items-center gap-2 text-sm font-medium mb-3">
                 <MapPinned className="h-4 w-4 text-primary" />
-                Select Location
+                District / Location
               </Label>
               <Select value={formData.location} onValueChange={handleLocationChange}>
-                <SelectTrigger id="location" className="mt-2">
+                <SelectTrigger id="location" className="h-12 bg-background border-border/60 hover:border-primary/40 transition-colors">
                   <SelectValue placeholder="Choose your district" />
                 </SelectTrigger>
                 <SelectContent>
@@ -361,134 +370,150 @@ export const CropPredictor = ({
             </div>
           </div>
 
+          {/* Farm Parameters Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="crop">Crop Type</Label>
+            <div className="space-y-3">
+              <Label htmlFor="crop" className="text-sm font-medium">Crop Type</Label>
               <Select value={formData.crop} onValueChange={(value) => setFormData({ ...formData, crop: value })}>
-                <SelectTrigger id="crop" className="mt-2">
-                  <SelectValue placeholder="Select crop" />
+                <SelectTrigger id="crop" className="h-12 bg-background border-border/60 hover:border-primary/40 transition-colors">
+                  <SelectValue placeholder="Select crop type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Rice">Rice</SelectItem>
-                  <SelectItem value="Wheat">Wheat</SelectItem>
-                  <SelectItem value="Maize">Maize</SelectItem>
-                  <SelectItem value="Sugarcane">Sugarcane</SelectItem>
-                  <SelectItem value="Cotton(lint)">Cotton</SelectItem>
+                  <SelectItem value="Rice">🌾 Rice</SelectItem>
+                  <SelectItem value="Wheat">🌾 Wheat</SelectItem>
+                  <SelectItem value="Maize">🌽 Maize</SelectItem>
+                  <SelectItem value="Sugarcane">🎋 Sugarcane</SelectItem>
+                  <SelectItem value="Cotton(lint)">🌿 Cotton</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="area">Area (hectares)</Label>
-              <Input
-                id="area"
-                type="number"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                placeholder="e.g., 10"
-                required
-                className="mt-2 bg-background"
-              />
+            <div className="space-y-3">
+              <Label htmlFor="area" className="text-sm font-medium">Cultivation Area</Label>
+              <div className="relative">
+                <Input
+                  id="area"
+                  type="number"
+                  step="0.1"
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                  placeholder="Enter area"
+                  required
+                  className="h-12 bg-background border-border/60 hover:border-primary/40 focus:border-primary transition-colors pr-20"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                  hectares
+                </span>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="rainfall" className="flex items-center gap-2">
+            <div className="space-y-3">
+              <Label htmlFor="rainfall" className="flex items-center gap-2 text-sm font-medium">
                 <Droplets className="h-4 w-4 text-secondary" />
-                Annual Rainfall (mm)
+                Annual Rainfall
               </Label>
-              <Input
-                id="rainfall"
-                type="number"
-                value={formData.rainfall}
-                onChange={(e) => setFormData({ ...formData, rainfall: e.target.value })}
-                placeholder="e.g., 1000"
-                required
-                className="mt-2 bg-background"
-                disabled={!formData.location}
-              />
+              <div className="relative">
+                <Input
+                  id="rainfall"
+                  type="number"
+                  value={formData.rainfall}
+                  onChange={(e) => setFormData({ ...formData, rainfall: e.target.value })}
+                  placeholder="Auto-filled"
+                  required
+                  className="h-12 bg-background border-border/60 hover:border-secondary/40 focus:border-secondary transition-colors pr-16"
+                  disabled={!formData.location}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                  mm
+                </span>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="temperature" className="flex items-center gap-2">
+            <div className="space-y-3">
+              <Label htmlFor="temperature" className="flex items-center gap-2 text-sm font-medium">
                 <Thermometer className="h-4 w-4 text-accent" />
-                Average Temperature (°C)
+                Avg. Temperature
               </Label>
-              <Input
-                id="temperature"
-                type="number"
-                value={formData.temperature}
-                onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
-                placeholder="e.g., 25"
-                required
-                className="mt-2 bg-background"
-                disabled={!formData.location}
-              />
+              <div className="relative">
+                <Input
+                  id="temperature"
+                  type="number"
+                  value={formData.temperature}
+                  onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+                  placeholder="Auto-filled"
+                  required
+                  className="h-12 bg-background border-border/60 hover:border-accent/40 focus:border-accent transition-colors pr-12"
+                  disabled={!formData.location}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                  °C
+                </span>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="soilType">Soil Type</Label>
+            <div className="space-y-3">
+              <Label htmlFor="soilType" className="text-sm font-medium">Soil Type</Label>
               <Input
                 id="soilType"
                 type="text"
                 value={formData.soilType}
                 onChange={(e) => setFormData({ ...formData, soilType: e.target.value })}
-                placeholder="e.g., Alluvial"
+                placeholder="Auto-filled from location"
                 required
-                className="mt-2 bg-background"
+                className="h-12 bg-background border-border/60 hover:border-primary/40 focus:border-primary transition-colors"
                 disabled={!formData.location}
               />
             </div>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="fertilizerType">Primary Fertilizer Type</Label>
+            <div className="space-y-3">
+              <Label htmlFor="fertilizerType" className="text-sm font-medium">Primary Fertilizer</Label>
               <Select 
                 value={formData.fertilizerType} 
                 onValueChange={(value) => setFormData({ ...formData, fertilizerType: value })}
               >
-                <SelectTrigger id="fertilizerType" className="mt-2">
-                  <SelectValue placeholder="Select fertilizer type" />
+                <SelectTrigger id="fertilizerType" className="h-12 bg-background border-border/60 hover:border-primary/40 transition-colors">
+                  <SelectValue placeholder="Select fertilizer" />
                 </SelectTrigger>
                 <SelectContent>
                   {fertilizerTypes.map((fertilizer) => (
                     <SelectItem key={fertilizer.value} value={fertilizer.value}>
-                      {fertilizer.label} - NPK: {fertilizer.npk}
+                      <div className="flex items-center justify-between w-full">
+                        <span>{fertilizer.label}</span>
+                        <span className="text-xs text-muted-foreground ml-2">NPK: {fertilizer.npk}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="fertilizerAmount">Fertilizer Amount (kg)</Label>
-              <Input
-                id="fertilizerAmount"
-                type="number"
-                value={formData.fertilizerAmount}
-                onChange={(e) => setFormData({ ...formData, fertilizerAmount: e.target.value })}
-                placeholder="e.g., 200"
-                required
-                className="mt-2 bg-background"
-              />
-            </div>
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary via-primary to-secondary hover:from-primary/90 hover:via-primary/80 hover:to-secondary/90 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+            size="lg"
+            className="w-full h-14 bg-gradient-hero hover:opacity-90 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] text-base font-semibold relative overflow-hidden group"
             disabled={isLoading || !formData.location}
           >
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
-                Analyzing with AI...
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3" />
+                <span className="relative">Analyzing with AI...</span>
               </>
             ) : (
               <>
-                <Sprout className="mr-2 h-4 w-4" />
-                Predict Yield & Get Recommendations
+                <Sprout className="mr-3 h-5 w-5 relative" />
+                <span className="relative">Generate Predictions & Recommendations</span>
               </>
             )}
           </Button>
+          
+          {!formData.location && (
+            <p className="text-center text-sm text-muted-foreground">
+              Please select a location to enable prediction
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>
